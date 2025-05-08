@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BudgetBuddy | AI Tips</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style/style.css">
+    <link rel="stylesheet" href="style/ai-tips.css">
+    <link rel="icon" href="images/logo.png">
+    <style>
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+        }
+        .chat-container {
+            width: 600px;
+            background: #fff;
+            padding: 24px;
+            margin: 60px auto 0 auto;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-box {
+            height: 350px;
+            overflow-y: auto;
+            border-radius: 8px;
+            padding: 10px;
+            background: #eaf0f7;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .user-message {
+            align-self: flex-end;
+            background: #4e73df;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 12px;
+            max-width: 70%;
+        }
+        .bot-message {
+            align-self: flex-start;
+            background: #1cc88a;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 12px;
+            max-width: 70%;
+        }
+        .input-area {
+            display: flex;
+            margin-top: 10px;
+        }
+        .input-area input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            outline: none;
+            font-size: 14px;
+        }
+        .input-area button {
+            background: #4e73df;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin-left: 5px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .input-area button:hover {
+            background: #375ab7;
+        }
+        .mic-button {
+            background: #1cc88a;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin-left: 5px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 16px;
+        }
+        .mic-button:hover {
+            background: #159c6b;
+        }
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 50px;
+            /* background: linear-gradient(135deg, #4e73df 0%, #1cc88a 100%); */
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        }
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .logo {
+            animation: rotate 1s linear infinite;
+        }
+        .brand-name {
+            font-size: 1.7rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: black;
+        }
+        .nav-links {
+            display: flex;
+            gap: 16px;
+        }
+        .nav-links a {
+            background: #4e73df;
+            color: #fff;
+            padding: 10px 22px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: background 0.2s;
+        }
+        .nav-links a.active, .nav-links a:hover {
+            background: #f7fffc;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="brand-logo">
+            <img src="images/logo.png" alt="logo" class="logo">
+            <span class="brand-name">BudgetBuddy</span>
+        </div>
+
+        <form class="login-form main-form" style="display:none;"></form>
+    </nav>
+    <main>
+        <div class="info-container" style="justify-content:center;align-items:center;min-height:60vh;">
+            <div class="feautures-container" style="width:100%;max-width:600px;">
+                <h2 style="text-align: center; margin-bottom: 10px; color:#4e73df;">AI Financial Assistant</h2>
+                <div class="chat-container">
+                    <div class="chat-box" id="chat-box"></div>
+                    <div class="input-area">
+                        <input type="text" id="user-input" placeholder="Ask for a financial tip...">
+                        <button onclick="sendMessage()">Send</button>
+                        <button class="mic-button" onclick="startListening()">🎙️</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <div style="display:flex;justify-content:center;margin:32px 0 24px 0;">
+        <a href="index.html" style="background:#4e73df;color:#fff;padding:12px 36px;border-radius:10px;text-decoration:none;font-weight:500;font-size:1.2rem;box-shadow:0 2px 8px rgba(0,0,0,0.07);transition:background 0.2s;">Home</a>
+    </div>
+    <!-- Removed nav-links buttons -->
+</nav>
+    <script>
+        const API_KEY = "AIzaSyC-Q2Xsh9mFYSVJ9GHcTArPBd8IAEby_H8"; // Replace with your own API Key
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+
+        let selectedVoice = null;
+
+        function setVoice() {
+            const speechSynthesis = window.speechSynthesis;
+            const voices = speechSynthesis.getVoices();
+            selectedVoice = voices.find(voice => voice.name.toLowerCase().includes("female")) || voices[0];
+        }
+
+        let recognition;
+        let isListening = false;
+
+        function startListening() {
+            if (!('webkitSpeechRecognition' in window)) {
+                alert('Speech Recognition API not supported in this browser.');
+                return;
+            }
+            if (isListening) {
+                recognition.stop();
+                return;
+            }
+            recognition = new webkitSpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+            recognition.onstart = function () {
+                isListening = true;
+            };
+            recognition.onresult = function (event) {
+                let speechToText = event.results[0][0].transcript;
+                document.getElementById('user-input').value = speechToText;
+            };
+            recognition.onerror = function (event) {
+                console.error('Speech recognition error:', event.error);
+            };
+            recognition.onend = function () {
+                isListening = false;
+            };
+            recognition.start();
+        }
+
+        async function sendMessage() {
+            let inputField = document.getElementById("user-input");
+            let message = inputField.value.trim();
+            if (!message) return;
+            displayMessage(message, "user");
+            inputField.value = "";
+            displayTypingEffect();
+            try {
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: message }] }] })
+                });
+                if (!response.ok) throw new Error(`HTTP Error! Status: ${response.status}`);
+                const data = await response.json();
+                let reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "I'm sorry, I didn't understand that.";
+                removeTypingEffect();
+                typeMessage(reply, "bot");
+            } catch (error) {
+                console.error("Error:", error);
+                removeTypingEffect();
+                displayMessage("⚠ Error: There might be an issue with the API connection.", "bot");
+            }
+        }
+
+        function typeMessage(message, sender) {
+            let chatBox = document.getElementById("chat-box");
+            let messageElement = document.createElement("p");
+            messageElement.className = sender === "user" ? "user-message" : "bot-message";
+            chatBox.appendChild(messageElement);
+            let sentences = message.split('.');
+            let currentSentenceIndex = 0;
+            function typeCharacter() {
+                if (currentSentenceIndex < sentences.length) {
+                    let sentence = sentences[currentSentenceIndex].trim();
+                    if (sentence.length > 0) {
+                        messageElement.innerHTML += sentence + ".<br>";
+                        currentSentenceIndex++;
+                    }
+                    setTimeout(typeCharacter, 50);
+                }
+            }
+            typeCharacter();
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function displayTypingEffect() {
+            let chatBox = document.getElementById("chat-box");
+            let typingIndicator = document.createElement("p");
+            typingIndicator.id = "typing-indicator";
+            typingIndicator.className = "bot-message";
+            typingIndicator.textContent = "Typing...";
+            chatBox.appendChild(typingIndicator);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+        function removeTypingEffect() {
+            let typingIndicator = document.getElementById("typing-indicator");
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+        function displayMessage(message, sender) {
+            let chatBox = document.getElementById("chat-box");
+            let messageElement = document.createElement("p");
+            messageElement.className = sender === "user" ? "user-message" : "bot-message";
+            messageElement.innerHTML = message.replace(/([.?!])\s*(?=\S)/g, "$1<br>");
+            chatBox.appendChild(messageElement);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+        window.speechSynthesis.onvoiceschanged = setVoice;
+        setVoice();
+    </script>
+</body>
+</html>

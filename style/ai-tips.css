@@ -1,0 +1,155 @@
+body {
+    font-family: 'Poppins', Arial, sans-serif;
+    background-color: #f0f2f5;
+    margin: 0;
+}
+.chat-container {
+    width: 600px;
+    background: #fff;
+    padding: 24px;
+    margin: 60px auto 0 auto;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+}
+.chat-box {
+    height: 350px;
+    overflow-y: auto;
+    border-radius: 8px;
+    padding: 10px;
+    background: #eaf0f7;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.user-message {
+    align-self: flex-end;
+    background: #4e73df;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 12px;
+    max-width: 70%;
+}
+.bot-message {
+    align-self: flex-start;
+    background: #1cc88a;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 12px;
+    max-width: 70%;
+}
+.input-area {
+    display: flex;
+    margin-top: 10px;
+}
+.input-area input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    outline: none;
+    font-size: 14px;
+}
+.input-area button {
+    background: #4e73df;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    margin-left: 5px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.input-area button:hover {
+    background: #375ab7;
+}
+.mic-button {
+    background: #1cc88a;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    margin-left: 5px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 16px;
+}
+.mic-button:hover {
+    background: #159c6b;
+}
+nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 50px;
+    background: none;
+    color: #222;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+}
+.brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.brand-name {
+    font-size: 1.7rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+.nav-links {
+    display: flex;
+    gap: 16px;
+}
+.nav-links a {
+    background: #4e73df;
+    color: #fff;
+    padding: 10px 22px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1.1rem;
+    transition: background 0.2s;
+}
+.nav-links a.active, .nav-links a:hover {
+    background: #1cc88a;
+}
+@media (max-width: 700px) {
+  .chat-container {
+    width: 98vw;
+    min-width: 0;
+    padding: 6vw 2vw;
+    margin: 10vw auto 0 auto;
+    box-sizing: border-box;
+  }
+  .chat-box {
+    height: 38vw;
+    min-height: 120px;
+    font-size: 15px;
+  }
+}
+@media (max-width: 430px) {
+  .chat-container {
+    width: 100vw;
+    padding: 2vw 1vw;
+    margin: 4vw auto 0 auto;
+    box-sizing: border-box;
+  }
+  .chat-box {
+    height: 32vw;
+    min-height: 80px;
+    font-size: 13px;
+  }
+  .input-area input {
+    font-size: 13px;
+    padding: 6px;
+  }
+  .brand-name {
+    font-size: 1rem;
+  }
+  .nav-links a {
+    padding: 6px 8px;
+    font-size: 0.95rem;
+  }
+}
