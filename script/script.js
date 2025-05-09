@@ -126,26 +126,6 @@ if (window.localStorage.getItem("myTab")) {
     window.localStorage.setItem("myTab", JSON.stringify(accounts));
 }
 
-// Restore logged-in user after refresh
-let currentAccount = null;
-if (window.localStorage.getItem("loggedInUser")) {
-    const shortName = window.localStorage.getItem("loggedInUser");
-    currentAccount = accounts.find(acc => acc.shortName === shortName);
-    if (currentAccount) {
-        // Show UI as logged in
-        main.style.display = "flex";
-        nav.style.display = "flex";
-        body.style.overflow = "auto";
-        introStartDiv.style.display = "none";
-        introP.style.display = "flex";
-        introSpan.textContent = `${currentAccount.owner.split(" ")[0]}!`;
-        rights.classList.add("rightsLogged");
-        mainForm.style.display = "none";
-        loadDraws(currentAccount.movements);
-        updateValues(currentAccount.movements, currentAccount);
-        document.querySelector('.category-graph-link').style.display = 'inline-block';
-    }
-}
 main.style.display = "none";
 nav.style.display = "none";
 body.style.overflow = "hidden";
@@ -285,6 +265,8 @@ inputsTable.forEach(input => {
     })
 });
 
+let currentAccount;
+
 function showUserSuggestions(currentUser) {
     const suggestionsContainer = document.querySelector('.suggestions-container');
     suggestionsContainer.style.display = 'block';
@@ -358,114 +340,16 @@ function checkUser(e) {
     );
 
     if (currentAccount) {
-        window.localStorage.setItem("loggedInUser", currentAccount.shortName);
-        let m = 10, s = 0;
-        // Set up transfer input event listeners for username suggestions
+        // ... existing login code ...
+
+        // Set up transfer handler
+        const transferForm = document.querySelector('.transfert .form');
+        transferForm.addEventListener('submit', (e) => handleTransfer(e, currentAccount));
+        
+        // Set up suggestions
         transferInput.addEventListener('focus', () => showUserSuggestions(currentAccount));
-        transferInput.addEventListener('input', () => showUserSuggestions(currentAccount));
-        document.addEventListener('click', (e) => {
-            const suggestionsContainer = document.querySelector('.suggestions-container');
-            if (!transferInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
-                suggestionsContainer.style.display = 'none';
-            }
-        });
-        let sortedTable = [...currentAccount.movements].sort((a, b) => {
-            if (a[0] < b[0]) return 1;
-            if (a[0] > b[0]) return -1;
-            return 0;
-        });
-        const timing = setInterval(timerStart, 1000);
-        function timerStart() {
-            if (s == 0) {
-                m--;
-                s = 59;
-            } else {
-                s--
-            }
-            if (s < 10) {
-                timer.textContent = `0${m}:0${s}`;
-            } else {
-                timer.textContent = `0${m}:${s}`;
-            }
-            if (s == 0 && m == 0) {
-                main.style.display = "none";
-                introP.style.display = "none";
-                mainForm.style.display = "flex";
-                introStartDiv.style.display = "flex";
-                rights.classList.remove("rightsLogged");
-                removeBorderBlur();
-                clearInterval(timing);
-            }
-        };
-        initializeValues();
-        greetingTime();
-        logo.classList.add("logo-active");
-        introStartDiv.style.display = "none";
-        introP.style.display = "flex";
-        introSpan.textContent = `${currentAccount.owner.split(" ")[0]}!`;
-        main.style.display = "flex";
-        rights.classList.add("rightsLogged");
-        mainForm.style.display = "none";
-        introP.style.display = "flex";
-        loadDraws(currentAccount.movements);
-        updateValues(currentAccount.movements, currentAccount);
-        sort.addEventListener("click", function () {
-            if (sort.textContent.includes("↓")) {
-                sort.textContent = "SORT↑";
-                loadDraws(sortedTable);
-            } else {
-                sort.textContent = "SORT↓";
-                loadDraws(currentAccount.movements);
-            }
-        });
-        document.querySelector('.category-graph-link').style.display = 'inline-block';
-    } else {
-        inputUser.classList.add("redBorder");
-        inputPIN.classList.add("redBorder");
     }
 }
-
-// Global event listeners for transfer and add money
-transferBtn.addEventListener('click', function (e) {
-    e.preventDefault();
-    if (!currentAccount) return;
-    const amount = Math.abs(Number(amount1Input.value));
-    const receiverShortName = transferInput.value.toLowerCase();
-    const receiverAcc = accounts.find(acc => acc.shortName === receiverShortName);
-    const currentBalance = currentAccount.movements.reduce((acc, mov) => acc + mov[0], 0);
-    if (amount > 0 && receiverAcc && currentBalance >= amount && receiverAcc.shortName !== currentAccount.shortName && amount <= 250000) {
-        const timestamp = `${concateZero(new Date().getDate())}/${concateZero(new Date().getMonth() + 1)}/${new Date().getFullYear()} ${concateZero(new Date().getHours())}:${concateZero(new Date().getMinutes())}`;
-        currentAccount.movements.unshift([-amount, timestamp]);
-        receiverAcc.movements.unshift([amount, timestamp]);
-        loadDraws(currentAccount.movements);
-        updateValues(currentAccount.movements, currentAccount);
-        transferInput.value = amount1Input.value = '';
-        transferInput.blur();
-        amount1Input.blur();
-        window.localStorage.setItem("myTab", JSON.stringify(accounts));
-        transferInput.classList.remove("redBorder");
-        amount1Input.classList.remove("redBorder");
-    } else {
-        transferInput.classList.add("redBorder");
-        amount1Input.classList.add("redBorder");
-    }
-});
-
-requestBtn.addEventListener("click", function (e) {
-    e.preventDefault();
-    if (!currentAccount) return;
-    if ((amount2Input.value > 0) && (checkDigit(amount2Input.value)) && (amount2Input.value <= 250000) && (amount2Input.value)) {
-        currentAccount.movements.unshift([parseFloat(amount2Input.value), `${concateZero(new Date().getDate())}/${concateZero(new Date().getMonth() + 1)}/${concateZero(new Date().getFullYear())}, ${concateZero(new Date().getHours())}:${concateZero(new Date().getMinutes())}`]);
-        loadDraws(currentAccount.movements);
-        updateValues(currentAccount.movements, currentAccount);
-        amount2Input.blur();
-        window.localStorage.setItem("myTab", JSON.stringify(accounts));
-    } else {
-        amount2Input.classList.add("redBorder");
-    }
-    amount2Input.value = '';
-});
-
 
 transferInput.addEventListener('focus', () => {
     const suggestionsContainer = document.querySelector('.suggestions-container');
@@ -546,7 +430,91 @@ function checkUser(e) {
                     loadDraws(acc.movements);
                 }
             });
-            document.querySelector('.category-graph-link').style.display = 'inline-block';
+            // Inside the checkUser function, where we handle the account login
+            // Add this line to store the current account
+            let currentAccount = acc;  // Add this after finding the matching account
+            
+            // Then update the transfer button event listener
+            transferBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const amount = Number(amount1Input.value);
+                const receiverShortName = transferInput.value.toLowerCase();
+                
+                // Calculate current balance
+                const currentBalance = currentAccount.movements.reduce((acc, mov) => acc + mov[0], 0);
+                
+                // Find receiver account using shortname
+                const receiverAcc = accounts.find(acc => acc.shortName === receiverShortName);
+                
+                if (amount > 0 && 
+                    receiverAcc && 
+                    currentBalance >= amount && 
+                    receiverAcc.shortName !== currentAccount.shortName) {
+                    
+                    // Transfer money
+                    currentAccount.movements.unshift([
+                        -amount,
+                        `${concateZero(new Date().getDate())}/${concateZero(new Date().getMonth() + 1)}/${new Date().getFullYear()} ${concateZero(new Date().getHours())}:${concateZero(new Date().getMinutes())}`
+                    ]);
+                    
+                    receiverAcc.movements.unshift([
+                        amount,
+                        `${concateZero(new Date().getDate())}/${concateZero(new Date().getMonth() + 1)}/${new Date().getFullYear()} ${concateZero(new Date().getHours())}:${concateZero(new Date().getMinutes())}`
+                    ]);
+            
+                    // Update UI
+                    loadDraws(currentAccount.movements);
+                    updateValues(currentAccount.movements, currentAccount);
+                    
+                    // Clear input fields
+                    transferInput.value = amount1Input.value = '';
+                    amount1Input.blur();
+                    
+                    // Update localStorage
+                    window.localStorage.setItem("myTab", JSON.stringify(accounts));
+                } else {
+                    transferInput.classList.add("redBorder");
+                    amount1Input.classList.add("redBorder");
+                }
+            });
+
+            requestBtn.addEventListener("click", function (e) {
+                e.preventDefault();
+                if ((amount2Input.value > 0) && (checkDigit(amount2Input.value)) && (amount2Input.value <= 250000) && (amount2Input.value)) {
+                    acc.movements.unshift([parseFloat(amount2Input.value), `${concateZero(new Date().getDate())}/${concateZero(new Date().getMonth() + 1)}/${concateZero(new Date().getFullYear())}, ${concateZero(new Date().getHours())}:${concateZero(new Date().getMinutes())}`]);
+                    loadDraws(acc.movements);
+                    updateValues(acc.movements, acc);
+                    sortedTable = [...acc.movements].sort((a, b) => {
+                        if (a[0] < b[0]) return 1;
+                        if (a[0] > b[0]) return -1;
+                        return 0;
+                    });
+                    amount2Input.blur();
+                    window.localStorage.setItem("myTab", JSON.stringify(accounts));
+                } else {
+                    amount2Input.classList.add("redBorder");
+                }
+                amount2Input.value = '';
+            });
+
+
+            closeBtn.addEventListener("click", function (e) {
+                e.preventDefault();
+                if ((closeInputUser.value.toLowerCase() == acc.shortName) && (closeInputPIN.value == acc.pin)) {
+                    main.style.display = "none";
+                    introP.style.display = "none";
+                    mainForm.style.display = "flex";
+                    rights.classList.remove("rightsLogged");
+                    introStartDiv.style.display = "flex";
+                    removeBorderBlur();
+                    logo.classList.remove("logo-active");
+                    clearInterval(timing);
+                } else {
+                    closeInputPIN.classList.add("redBorder");
+                    closeInputUser.classList.add("redBorder");
+                }
+                closeInputUser.value = closeInputPIN.value = '';
+            })
         } else {
             inputUser.classList.add("redBorder");
             inputPIN.classList.add("redBorder");
@@ -556,10 +524,3 @@ function checkUser(e) {
 }
 
 loginBtn.addEventListener("click", checkUser);
-
-
-// After logout or failed login, hide the Category Graph button again
-function logoutOrFailedLogin() {
-    document.querySelector('.category-graph-link').style.display = 'none';
-    clearInterval(timing);
-}
